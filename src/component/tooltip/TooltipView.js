@@ -167,7 +167,7 @@ define(function (require) {
         _axisPointers: {},
 
         init: function (ecModel, api) {
-            if (!env.canvasSupported) {
+            if (env.node) {
                 return;
             }
             var tooltipContent = new TooltipContent(api.getDom(), api);
@@ -178,9 +178,10 @@ define(function (require) {
         },
 
         render: function (tooltipModel, ecModel, api) {
-            if (!env.canvasSupported) {
+            if (env.node) {
                 return;
             }
+
             // Reset
             this.group.removeAll();
 
@@ -220,7 +221,6 @@ define(function (require) {
             var tooltipContent = this._tooltipContent;
             tooltipContent.update();
             tooltipContent.enterable = tooltipModel.get('enterable');
-
             this._alwaysShowContent = tooltipModel.get('alwaysShowContent');
 
             /**
@@ -235,6 +235,21 @@ define(function (require) {
                 this.group.add(crossText);
             }
 
+            // Try to keep the tooltip show when refreshing
+            if (this._lastX != null && this._lastY != null) {
+                var self = this;
+                clearTimeout(this._refreshUpdateTimeout);
+                this._refreshUpdateTimeout = setTimeout(function () {
+                    // Show tip next tick after other charts are rendered
+                    // In case highlight action has wrong result
+                    // FIXME
+                    self._manuallyShowTip({
+                        x: self._lastX,
+                        y: self._lastY
+                    });
+                });
+            }
+
             var zr = this._api.getZr();
             var tryShow = this._tryShow;
             zr.off('click', tryShow);
@@ -247,6 +262,7 @@ define(function (require) {
                 zr.on('mousemove', tryShow, this);
                 zr.on('mouseout', this._hide, this);
             }
+
         },
 
         /**
@@ -320,10 +336,12 @@ define(function (require) {
                 }
             }
             else {
-                // Use zrender handler to trigger event
-                api.getZr().handler.dispatch('mousemove', {
-                    zrX: event.x,
-                    zrY: event.y
+                var el = api.getZr().handler.findHover(event.x, event.y);
+                this._tryShow({
+                    offsetX: event.x,
+                    offsetY: event.y,
+                    target: el,
+                    event: {}
                 });
             }
         },
@@ -387,6 +405,10 @@ define(function (require) {
             if (!tooltipModel) {
                 return;
             }
+
+            // Save mouse x, mouse y. So we can try to keep showing the tip if chart is refreshed
+            this._lastX = e.offsetX;
+            this._lastY = e.offsetY;
 
             // Always show item tooltip if mouse is on the element with dataIndex
             if (el && el.dataIndex != null) {
@@ -853,9 +875,9 @@ define(function (require) {
                 return {
                     seriesIndex: series.seriesIndex,
                     dataIndex: series.getAxisTooltipDataIndex
-                        ? series.getAxisTooltipDataIndex(series.getDimensionsOnAxis(baseAxis.dim), value, baseAxis)
+                        ? series.getAxisTooltipDataIndex(series.coordDimToDataDim(baseAxis.dim), value, baseAxis)
                         : series.getData().indexOfNearest(
-                            series.getDimensionsOnAxis(baseAxis.dim)[0],
+                            series.coordDimToDataDim(baseAxis.dim)[0],
                             value[baseAxis.dim === 'x' || baseAxis.dim === 'radius' ? 0 : 1]
                         )
                 };
@@ -1077,6 +1099,9 @@ define(function (require) {
         },
 
         dispose: function (ecModel, api) {
+            if (env.node) {
+                return;
+            }
             var zr = api.getZr();
             this._tooltipContent.hide();
 

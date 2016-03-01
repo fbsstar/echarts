@@ -11,6 +11,8 @@ define(function(require) {
 
         type: 'title',
 
+        layoutMode: {type: 'box', ignoreSize: true},
+
         defaultOption: {
             // 一级层叠
             zlevel: 0,
@@ -32,10 +34,10 @@ define(function(require) {
 
             // 'center' ¦ 'left' ¦ 'right'
             // ¦ {number}（x坐标，单位px）
-            left: 'left',
+            left: 0,
             // 'top' ¦ 'bottom' ¦ 'center'
             // ¦ {number}（y坐标，单位px）
-            top: 'top',
+            top: 0,
 
             // 水平对齐
             // 'auto' | 'left' | 'right'
@@ -145,25 +147,18 @@ define(function(require) {
             );
             // Adjust text align based on position
             if (!textAlign) {
-                var p = layoutRect.x / api.getWidth();
-                var p2 = (layoutRect.x + layoutRect.width) / api.getWidth();
-
-                if (p < 0.1) {
-                    textAlign = 'left';
-                }
-                else if (p2 > 0.9) {
-                    textAlign = 'right';
-                }
-                else {
+                // Align left if title is on the left. center and right is same
+                textAlign = titleModel.get('left') || titleModel.get('right');
+                if (textAlign === 'middle') {
                     textAlign = 'center';
                 }
-            }
-            // Adjust layout by text align
-            if (textAlign === 'right') {
-                layoutRect.x += layoutRect.width;
-            }
-            else if (textAlign === 'center') {
-                layoutRect.x += layoutRect.width / 2;
+                // Adjust layout by text align
+                if (textAlign === 'right') {
+                    layoutRect.x += layoutRect.width;
+                }
+                else if (textAlign === 'center') {
+                    layoutRect.x += layoutRect.width / 2;
+                }
             }
             group.position = [layoutRect.x, layoutRect.y];
             textEl.setStyle('textAlign', textAlign);

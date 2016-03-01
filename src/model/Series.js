@@ -84,11 +84,6 @@ define(function(require) {
                 this._data = data;
                 this._dataBeforeProcessed = data.cloneShallow();
             }
-            // FIXME
-            // Default label emphasis `position` and `show`
-            // Do it after option is merged. In case newSeriesOption only
-            // set the value in emphasis
-            // modelUtil.defaultNormalEmphasis(this.option.label);
         },
 
         /**
@@ -128,33 +123,29 @@ define(function(require) {
         },
 
         /**
-         * Get dimensions on the given axis.
-         * @param {string} axisDim
+         * Coord dimension to data dimension.
+         *
+         * By default the result is the same as dimensions of series data.
+         * But some series dimensions are different from coord dimensions (i.e.
+         * candlestick and boxplot). Override this method to handle those cases.
+         *
+         * Coord dimension to data dimension can be one-to-many
+         *
+         * @param {string} coordDim
          * @return {Array.<string>} dimensions on the axis.
          */
-        getDimensionsOnAxis: function (axisDim) {
-            return [axisDim]; // Retunr axisDim default.
+        coordDimToDataDim: function (coordDim) {
+            return [coordDim];
         },
 
         /**
-         * Get coordinate dimensions info.
-         * By default the result is the same as dimensions info of series data.
-         * But some series dimensions are different from coord dimensions (i.e.
-         * candlestick and boxplot). Override this method to handle those cases.
-         * @param {string|number} [dataDim]
-         * @return {Array.<Object>} If dataDim specified, return cooresponding
-         *                          coord dim info, otherwise return dimension
-         *                          info list. If no coordinate system, reutrn [].
+         * Convert data dimension to coord dimension.
+         *
+         * @param {string|number} dataDim
+         * @return {string}
          */
-        getCoordDimensionInfo: function (dataDim) {
-            var data = this.getData();
-            return this.coordinateSystem
-                ? (
-                    dataDim != null
-                        ? data.getDimensionInfo(dataDim)
-                        : zrUtil.map(data.dimensions, data.getDimensionInfo, data)
-                )
-                : [];
+        dataDimToCoordDim: function (dataDim) {
+            return dataDim;
         },
 
         /**

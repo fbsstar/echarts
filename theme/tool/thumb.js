@@ -31,9 +31,13 @@ glob('../*.js', function (err, themePathList) {
         echarts.util.each(options, function (option) {
             var canvas = createCanvas();
             var chart = echarts.init(canvas, themeName);
+            var optionNeedFix = option;
+            if (option.options) {
+                optionNeedFix = option.options[0];
+            }
             canvasList.push(canvas);
-            option.animation = false;
-            option.textStyle = {
+            optionNeedFix.animation = false;
+            optionNeedFix.textStyle = {
                 fontFamily: 'Helvetica',
                 fontSize: 12
             };
@@ -41,9 +45,9 @@ glob('../*.js', function (err, themePathList) {
             chart.dispose();
         });
 
-        var outputCanvas = new Canvas(WIDTH * 2, HEIGHT * canvasList.length);
-        var outputCtx = outputCanvas.getContext('2d');
         var columnCount = 2;
+        var outputCanvas = new Canvas(WIDTH * columnCount, HEIGHT * canvasList.length / columnCount);
+        var outputCtx = outputCanvas.getContext('2d');
         canvasList.forEach(function (canvas, idx) {
             outputCtx.drawImage(canvas, idx % columnCount * WIDTH, Math.floor(idx / columnCount) * HEIGHT, WIDTH, HEIGHT);
         });

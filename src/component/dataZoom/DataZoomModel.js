@@ -12,7 +12,7 @@ define(function(require) {
     var each = zrUtil.each;
     var eachAxisDim = modelUtil.eachAxisDim;
 
-    return echarts.extendComponentModel({
+    var DataZoomModel = echarts.extendComponentModel({
 
         type: 'dataZoom',
 
@@ -31,12 +31,16 @@ define(function(require) {
             yAxisIndex: null,       // Default all vertical category axis.
             angleAxisIndex: null,
             radiusAxisIndex: null,
-            filterMode: 'filter',   // 'filter' or 'empty'
+            filterMode: 'filter',   // Possible values: 'filter' or 'empty'.
                                     // 'filter': data items which are out of window will be removed.
                                     //           This option is applicable when filtering outliers.
                                     // 'empty': data items which are out of window will be set to empty.
                                     //          This option is applicable when user should not neglect
                                     //          that there are some data items out of window.
+                                    // Taking line chart as an example, line will be broken in
+                                    // the filtered points when filterModel is set to 'empty', but
+                                    // be connected when set to 'filter'.
+
             throttle: 100,          // Dispatch action by the fixed rate, avoid frequency.
                                     // default 100. Do not throttle when use null/undefined.
             start: 0,               // Start percent. 0 ~ 100
@@ -113,6 +117,20 @@ define(function(require) {
             this._giveAxisProxies();
 
             this._backup();
+        },
+
+        /**
+         * @protected
+         */
+        restoreData: function () {
+            DataZoomModel.superApply(this, 'restoreData', arguments);
+
+            // If use dataZoom while dynamic setOption, axis setting should
+            // be restored before new option setting, otherwise axis status
+            // that is set by dataZoom will be recorded in _backup calling.
+            this.eachTargetAxis(function (dimNames, axisIndex, dataZoomModel) {
+                dataZoomModel.getAxisProxy(dimNames.name, axisIndex).restore(dataZoomModel);
+            });
         },
 
         /**
@@ -296,15 +314,7 @@ define(function(require) {
          */
         _backup: function () {
             this.eachTargetAxis(function (dimNames, axisIndex, dataZoomModel, ecModel) {
-                var axisModel = ecModel.getComponent(dimNames.axis, axisIndex);
-                this.getAxisProxy(dimNames.name, axisIndex).backup(
-                    this,
-                    {
-                        scale: axisModel.get('scale', true),
-                        min: axisModel.get('min', true),
-                        max: axisModel.get('max', true)
-                    }
-                );
+                this.getAxisProxy(dimNames.name, axisIndex).backup(dataZoomModel);
             }, this);
         },
 
@@ -450,4 +460,6 @@ define(function(require) {
         }
         // Otherwise do nothing and use the merge result.
     }
+
+    return DataZoomModel;
 });

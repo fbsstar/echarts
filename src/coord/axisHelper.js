@@ -122,7 +122,12 @@ define(function (require) {
         var autoLabelInterval = 0;
         var accumulatedLabelInterval = 0;
 
-        for (var i = 0; i < tickCoords.length; i++) {
+        var step = 1;
+        if (labels.length > 40) {
+            // Simple optimization for large amount of labels
+            step = Math.round(labels.length / 40);
+        }
+        for (var i = 0; i < tickCoords.length; i += step) {
             var tickCoord = tickCoords[i];
             var rect = textContain.getBoundingRect(
                 labels[i], font, 'center', 'top'
@@ -143,8 +148,10 @@ define(function (require) {
                 accumulatedLabelInterval = 0;
             }
         }
-
-        return autoLabelInterval;
+        if (autoLabelInterval === 0 && step > 1) {
+            return step;
+        }
+        return autoLabelInterval * step;
     };
 
     /**

@@ -3,9 +3,7 @@
  */
 define(function(require) {
 
-    var DataZoomModel = require('./DataZoomModel');
-
-    return DataZoomModel.extend({
+    return require('./DataZoomModel').extend({
 
         type: 'dataZoom.inside',
 
@@ -15,7 +13,5 @@ define(function(require) {
         defaultOption: {
             zoomLock: false // Whether disable zoom but only pan.
         }
-
     });
-
 });
