@@ -167,7 +167,7 @@ define(function (require) {
         _axisPointers: {},
 
         init: function (ecModel, api) {
-            if (!env.canvasSupported) {
+            if (env.node) {
                 return;
             }
             var tooltipContent = new TooltipContent(api.getDom(), api);
@@ -178,7 +178,7 @@ define(function (require) {
         },
 
         render: function (tooltipModel, ecModel, api) {
-            if (!env.canvasSupported) {
+            if (env.node) {
                 return;
             }
             // Reset
@@ -853,9 +853,9 @@ define(function (require) {
                 return {
                     seriesIndex: series.seriesIndex,
                     dataIndex: series.getAxisTooltipDataIndex
-                        ? series.getAxisTooltipDataIndex(series.getDimensionsOnAxis(baseAxis.dim), value, baseAxis)
+                        ? series.getAxisTooltipDataIndex(series.coordDimToDataDim(baseAxis.dim), value, baseAxis)
                         : series.getData().indexOfNearest(
-                            series.getDimensionsOnAxis(baseAxis.dim)[0],
+                            series.coordDimToDataDim(baseAxis.dim)[0],
                             value[baseAxis.dim === 'x' || baseAxis.dim === 'radius' ? 0 : 1]
                         )
                 };

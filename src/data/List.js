@@ -659,10 +659,10 @@ define(function (require) {
     };
 
     function cloneListForMapAndSample(original, excludeDimensions) {
-        var allDimensions = this.dimensions;
+        var allDimensions = original.dimensions;
         var list = new List(
-            zrUtil.map(allDimensions, this.getDimensionInfo, this),
-            this.hostModel
+            zrUtil.map(allDimensions, original.getDimensionInfo, original),
+            original.hostModel
         );
         // FIXME If needs stackedOn, value may already been stacked
         transferImmuProperties(list, original, original._wrappedMethods);
@@ -762,8 +762,9 @@ define(function (require) {
                 frameValues.length = frameSize;
             }
             for (var k = 0; k < frameSize; k++) {
-                frameValues[k] = dimStore[i + k];
-                frameIndices[k] = originalIndices[i + k];
+                var idx = originalIndices[i + k];
+                frameValues[k] = dimStore[idx];
+                frameIndices[k] = idx;
             }
             var value = sampleValue(frameValues);
             var idx = frameIndices[sampleIndex(frameValues, value) || 0];
