@@ -5,7 +5,6 @@
 
 define(function (require) {
 
-    var zrUtil = require('zrender/core/util');
     var number = {};
 
     var RADIAN_EPSILON = 1e-4;
@@ -24,12 +23,6 @@ define(function (require) {
      * @return {(number|Array.<number>}
      */
     number.linearMap = function (val, domain, range, clamp) {
-
-        if (zrUtil.isArray(val)) {
-            return zrUtil.map(val, function (v) {
-                return number.linearMap(v, domain, range, clamp);
-            });
-        }
 
         var sub = domain[1] - domain[0];
 
